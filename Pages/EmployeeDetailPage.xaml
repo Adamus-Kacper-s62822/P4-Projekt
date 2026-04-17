@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Projekt.EmployeeDetailPage"
+             Title="Szczegóły Pracownika">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <Frame BackgroundColor="{StaticResource Primary}" CornerRadius="10">
+                <VerticalStackLayout HorizontalOptions="Center">
+                    <Label Text="{Binding CurrentEmployee.FullName}" FontSize="24" TextColor="White" HorizontalOptions="Center"/>
+                    <Label Text="Pozostały urlop:" TextColor="White" Opacity="0.8" HorizontalOptions="Center"/>
+                    <Label Text="{Binding RemainingDays, StringFormat='{0} dni'}" FontSize="40" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Button Text="Złóż wniosek urlopowy" Command="{Binding AddLeaveCommand}" />
+
+            <Label Text="Historia urlopów" FontAttributes="Bold" FontSize="18" Margin="0,10,0,0"/>
+
+            <CollectionView ItemsSource="{Binding Leaves}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="0,5" Padding="10">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="{Binding StartDate, StringFormat='{0:dd.MM.yy}'}" />
+                                <Label Text="-" />
+                                <Label Text="{Binding EndDate, StringFormat='{0:dd.MM.yy}'}" />
+                                <Label Text="{Binding Days, StringFormat='({0} dni)'}" FontAttributes="Bold" />
+                            </HorizontalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

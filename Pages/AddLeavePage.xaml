@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Projekt.AddLeavePage"
+             Title="Nowy Wniosek">
+
+    <VerticalStackLayout Padding="20" Spacing="15">
+        <Label Text="Data rozpoczęcia:" />
+        <DatePicker Date="{Binding StartDate}" MinimumDate="2020-01-01" />
+
+        <Label Text="Data zakończenia:" />
+        <DatePicker Date="{Binding EndDate}" MinimumDate="{Binding StartDate}" />
+
+        <Frame BackgroundColor="#F0F0F0" Margin="0,10">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+                <Label Text="Dni robocze:" VerticalOptions="Center" />
+                <Label Text="{Binding CalculatedDays}" FontSize="24" FontAttributes="Bold" />
+            </HorizontalStackLayout>
+        </Frame>
+
+        <Button Text="Zatwierdź urlop" 
+                Command="{Binding SubmitCommand}"
+                BackgroundColor="Green" 
+                TextColor="White" />
+    </VerticalStackLayout>
+</ContentPage>

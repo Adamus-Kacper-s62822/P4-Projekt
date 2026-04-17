@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Projekt.MainPage">
+
+    <Grid RowDefinitions="Auto, *">
+        <Button Text="Dodaj nowego pracownika" Clicked="OnAddEmployeeClicked" />
+
+        <CollectionView 
+                Grid.Row="1" 
+                ItemsSource="{Binding Employees}" 
+                SelectionMode="Single"
+                SelectionChanged="OnEmployeeSelected">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <VerticalStackLayout Padding="10">
+                        <Label Text="{Binding LastName}" FontAttributes="Bold" />
+                        <Label Text="{Binding FirstName}" />
+                        <Label Text="{Binding ReferenceNumber}" FontSize="Caption" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>
