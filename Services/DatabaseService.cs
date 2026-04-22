@@ -54,28 +54,25 @@ namespace Projekt.Services
             await Init();
             int result;
 
-            if (employee.Id != 0)
-            {
-                result = await _db.UpdateAsync(employee);
-            }
-            else
-            {
-                result = await _db.InsertAsync(employee);
+            if (employee.Id != 0) return result = await _db.UpdateAsync(employee);
+            
+            
+            result = await _db.InsertAsync(employee);
 
-                var empType = await _db.Table<EmploymentType>()
-                                       .FirstOrDefaultAsync(t => t.Id == employee.EmploymentTypeId);
+            var empType = await _db.Table<EmploymentType>()
+                                    .FirstOrDefaultAsync(t => t.Id == employee.EmploymentTypeId);
 
-                if (empType != null && empType.HasLeaveRights)
+            if (empType != null && empType.HasLeaveRights)
+            {
+                await _db.InsertAsync(new LeaveLimit
                 {
-                    await _db.InsertAsync(new LeaveLimit
-                    {
-                        EmployeeId = employee.Id,
-                        LeaveTypeId = 1,
-                        Year = DateTime.Now.Year,
-                        DaysLimit = empType.LeaveLimit ?? 0
-                    });
-                }
+                    EmployeeId = employee.Id,
+                    LeaveTypeId = 1,
+                    Year = DateTime.Now.Year,
+                    DaysLimit = empType.LeaveLimit ?? 0
+                });
             }
+            
             return result;
         }
 
@@ -95,7 +92,7 @@ namespace Projekt.Services
 
             foreach (var emp in employees)
             {
-                var typeName = types.FirstOrDefault(t => t.Id == emp.EmploymentTypeId)?.Name ?? "Nieznany";
+                var typeName = types.FirstOrDefault(t => t.Id == emp.EmploymentTypeId)?.Name;
                 var remaining = await GetRemainingLeaveDays(emp.Id, DateTime.Now.Year);
 
                 displayList.Add(new EmployeeDisplay
