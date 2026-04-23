@@ -10,27 +10,22 @@ namespace Projekt.ViewModels
     public class EmployeeDetailViewModel : BindableObject
     {
         private readonly DatabaseService _dbService;
-
         private Employee _currentEmployee;
+        private double _remainingDays;
+
         public Employee CurrentEmployee
         {
             get => _currentEmployee;
-            set
-            {
-                _currentEmployee = value;
-                OnPropertyChanged();
-                LoadDetails();
-            }
+            set { _currentEmployee = value; OnPropertyChanged(); _ = LoadDetails(); }
         }
 
-        private double _remainingDays;
         public double RemainingDays
         {
             get => _remainingDays;
             set { _remainingDays = value; OnPropertyChanged(); }
         }
 
-        public ObservableCollection<Leave> Leaves { get; set; } = new();
+        public ObservableCollection<Leave> Leaves { get; } = new();
         public ICommand AddLeaveCommand { get; }
         public ICommand DeleteLeaveCommand { get; }
         public ICommand ExportReportCommand { get; }
@@ -43,40 +38,32 @@ namespace Projekt.ViewModels
                 await Shell.Current.GoToAsync("AddLeavePage",
                 new Dictionary<string, object> { { "Employee", CurrentEmployee } }));
 
-            DeleteLeaveCommand = new Command<Leave>(async (leave) => await OnDeleteLeave(leave));
+            DeleteLeaveCommand = new Command<Leave>(async (l) => await OnDeleteLeave(l));
             ExportReportCommand = new Command(async () => await OnExportReport());
         }
 
-        public async void LoadDetails()
+        public async Task LoadDetails()
         {
             if (CurrentEmployee == null) return;
 
-            // Pobieramy pozostałe dni
             RemainingDays = await _dbService.GetRemainingLeaveDays(CurrentEmployee.Id, DateTime.Now.Year);
 
-            // Pobieramy historię
             var history = await _dbService.GetEmployeeLeaves(CurrentEmployee.Id);
             Leaves.Clear();
-            foreach (var leave in history)
-                Leaves.Add(leave);
+            foreach (var leave in history) Leaves.Add(leave);
         }
 
         private async Task OnDeleteLeave(Leave leave)
         {
             if (leave == null) return;
 
-            bool confirm = await Shell.Current.DisplayAlertAsync(
-                "Potwierdzenie",
-                $"Czy na pewno usunąć wniosek urlopowy ({leave.Days} dni)?",
-                "Tak", "Anuluj");
+            bool confirm = await Shell.Current.DisplayAlertAsync("Potwierdzenie",
+                $"Czy usunąć wniosek ({leave.Days} dni)?", "Tak", "Anuluj");
 
             if (confirm)
             {
-                // Tutaj używamy Twojej nowej metody z DatabaseService
                 await _dbService.DeleteLeaveAsync(leave.Id);
-
-                // Odświeżamy widok
-                LoadDetails();
+                await LoadDetails();
             }
         }
 
@@ -90,41 +77,26 @@ namespace Projekt.ViewModels
                 sb.AppendLine("==========================================");
                 sb.AppendLine("        KARTA URLOPOWA PRACOWNIKA         ");
                 sb.AppendLine("==========================================");
-                sb.AppendLine($"Data wygenerowania: {DateTime.Now:dd.MM.yyyy HH:mm}");
                 sb.AppendLine($"Pracownik: {CurrentEmployee.FirstName} {CurrentEmployee.LastName}");
-                sb.AppendLine($"Numer ref: {CurrentEmployee.ReferenceNumber}");
-                sb.AppendLine($"Pozostały urlop: {RemainingDays} dni");
-                sb.AppendLine("------------------------------------------");
-                sb.AppendLine("HISTORIA WNIOSKÓW:");
+                sb.AppendLine($"Dostępny urlop: {RemainingDays} dni");
                 sb.AppendLine("------------------------------------------");
 
-                if (Leaves.Count == 0)
-                {
-                    sb.AppendLine("Brak zarejestrowanych wniosków.");
-                }
+                if (Leaves.Count == 0) sb.AppendLine("Brak wniosków.");
                 else
                 {
-                    foreach (var leave in Leaves)
-                    {
-                        sb.AppendLine($"{leave.StartDate:dd.MM.yyyy} - {leave.EndDate:dd.MM.yyyy} | Dni: {leave.Days}");
-                    }
+                    foreach (var l in Leaves)
+                        sb.AppendLine($"{l.StartDate:dd.MM.yyyy} - {l.EndDate:dd.MM.yyyy} | Dni: {l.Days}");
                 }
-                sb.AppendLine("------------------------------------------");
-                sb.AppendLine("Podpis kadrowego: ........................");
 
-                // Ścieżka do folderu "Moje Dokumenty"
-                string fileName = $"Raport_Urlopowy_{CurrentEmployee.LastName}_{DateTime.Now:yyyyMMdd}.txt";
+                string fileName = $"Raport_{CurrentEmployee.LastName}_{DateTime.Now:yyyyMMdd}.txt";
                 string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), fileName);
 
-                // Zapis pliku
                 await File.WriteAllTextAsync(filePath, sb.ToString());
-
-                await Shell.Current.DisplayAlertAsync("Raport wygenerowany",
-                    $"Plik został zapisany w folderze Dokumenty:\n{fileName}", "OK");
+                await Shell.Current.DisplayAlertAsync("Sukces", $"Zapisano: {fileName}", "OK");
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlertAsync("Błąd", $"Nie udało się wygenerować raportu: {ex.Message}", "OK");
+                await Shell.Current.DisplayAlertAsync("Błąd", ex.Message, "OK");
             }
         }
     }
