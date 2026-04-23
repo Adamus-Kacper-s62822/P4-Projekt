@@ -15,12 +15,13 @@ namespace Projekt
             BindingContext = new EmployeeViewModel(dbService);
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
+
             if (BindingContext is EmployeeViewModel vm)
             {
-                vm.LoadData();
+                await vm.InitializeAsync();
             }
         }
 

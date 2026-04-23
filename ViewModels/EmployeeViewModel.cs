@@ -1,9 +1,6 @@
 ﻿using Projekt.Models;
 using Projekt.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using System.Windows.Input;
 
 namespace Projekt.ViewModels
@@ -11,14 +8,30 @@ namespace Projekt.ViewModels
     public class EmployeeViewModel : BindableObject
     {
         private readonly DatabaseService _dbService;
-
-        public ObservableCollection<Employee> Employees { get; set; } = new();
-
+        private List<Employee> _allEmployees = new();
+        private string _searchText;
         private int _totalEmployees;
-        public int TotalEmployees { get => _totalEmployees; set { _totalEmployees = value; OnPropertyChanged(); } }
-
         private int _employeesOnLeaveToday;
-        public int EmployeesOnLeaveToday { get => _employeesOnLeaveToday; set { _employeesOnLeaveToday = value; OnPropertyChanged(); } }
+
+        public ObservableCollection<Employee> Employees { get; } = new();
+
+        public string SearchText
+        {
+            get => _searchText;
+            set { _searchText = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        public int TotalEmployees
+        {
+            get => _totalEmployees;
+            set { _totalEmployees = value; OnPropertyChanged(); }
+        }
+
+        public int EmployeesOnLeaveToday
+        {
+            get => _employeesOnLeaveToday;
+            set { _employeesOnLeaveToday = value; OnPropertyChanged(); }
+        }
 
         public ICommand GoToDetailsCommand { get; }
         public ICommand DeleteEmployeeCommand { get; }
@@ -26,57 +39,24 @@ namespace Projekt.ViewModels
         public EmployeeViewModel(DatabaseService dbService)
         {
             _dbService = dbService;
-            GoToDetailsCommand = new Command<Employee>(async (emp) => await GoToDetails(emp));
-            DeleteEmployeeCommand = new Command<Employee>(async (emp) => await DeleteEmployee(emp));
-            LoadData();
+            GoToDetailsCommand = new Command<Employee>(async (e) => await GoToDetails(e));
+            DeleteEmployeeCommand = new Command<Employee>(async (e) => await OnDeleteEmployee(e));
+
+            _ = InitializeAsync();
         }
 
-        public async void LoadData()
+        public async Task InitializeAsync()
         {
-            var emps = await _dbService.GetAllEmployees();
-            _allEmployees = emps.OrderBy(e => e.LastName).ToList();
+            _allEmployees = await _dbService.GetAllEmployees();
+            TotalEmployees = _allEmployees.Count;
+            EmployeesOnLeaveToday = await _dbService.GetEmployeesOnLeaveTodayCount();
 
             ApplyFilter();
-
-            TotalEmployees = emps.Count;
-            EmployeesOnLeaveToday = await _dbService.GetEmployeesOnLeaveTodayCount();
         }
-
-        private async Task GoToDetails(Employee emp)
-        {
-            await Shell.Current.GoToAsync("EmployeeDetailPage", new Dictionary<string, object> { { "Employee", emp } });
-        }
-
-        private async Task DeleteEmployee(Employee emp)
-        {
-            bool confirm = await Shell.Current.DisplayAlertAsync("Potwierdzenie",
-                $"Czy na pewno chcesz usunąć pracownika {emp.FirstName} {emp.LastName}?", "Tak", "Nie");
-
-            if (confirm)
-            {
-                await _dbService.DeleteEmployeeAsync(emp.Id);
-                LoadData();
-            }
-        }
-
-        private string _searchText;
-        public string SearchText
-        {
-            get => _searchText;
-            set
-            {
-                _searchText = value;
-                OnPropertyChanged();
-                ApplyFilter();
-            }
-        }
-
-        private List<Employee> _allEmployees = new();
 
         private void ApplyFilter()
         {
             Employees.Clear();
-
             var filtered = string.IsNullOrWhiteSpace(SearchText)
                 ? _allEmployees
                 : _allEmployees.Where(e =>
@@ -84,8 +64,27 @@ namespace Projekt.ViewModels
                     e.FirstName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                     e.ReferenceNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
 
-            foreach (var e in filtered)
-                Employees.Add(e);
+            foreach (var e in filtered) Employees.Add(e);
+        }
+
+        private async Task GoToDetails(Employee emp)
+        {
+            if (emp == null) return;
+            await Shell.Current.GoToAsync("EmployeeDetailPage", new Dictionary<string, object> { { "Employee", emp } });
+        }
+
+        private async Task OnDeleteEmployee(Employee emp)
+        {
+            if (emp == null) return;
+
+            bool confirm = await Shell.Current.DisplayAlertAsync("Potwierdzenie",
+                $"Usunąć pracownika {emp.FirstName} {emp.LastName}?", "Tak", "Nie");
+
+            if (confirm)
+            {
+                await _dbService.DeleteEmployeeAsync(emp.Id);
+                await InitializeAsync();
+            }
         }
     }
 }
