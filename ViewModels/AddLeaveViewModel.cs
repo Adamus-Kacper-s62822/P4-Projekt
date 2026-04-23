@@ -8,61 +8,59 @@ namespace Projekt.ViewModels
     public class AddLeaveViewModel : BindableObject
     {
         private readonly DatabaseService _dbService;
-
         private Employee _currentEmployee;
+        private DateTime _startDate = DateTime.Today;
+        private DateTime _endDate = DateTime.Today;
+        private double _calculatedDays;
+        private double _remainingDays;
+        private string _validationMessage;
+        private bool _isSubmitEnabled;
+
         public Employee CurrentEmployee
         {
             get => _currentEmployee;
-            set
-            {
-                _currentEmployee = value;
-                OnPropertyChanged();
-
-                LoadEmployeeData();
-                UpdateCalculatedDays();
-            }
+            set { _currentEmployee = value; OnPropertyChanged(); _ = InitializeData(); }
         }
 
-        private DateTime _startDate = DateTime.Today;
         public DateTime StartDate
         {
             get => _startDate;
-            set { _startDate = value; OnPropertyChanged(); UpdateCalculatedDays(); }
+            set { _startDate = value; OnPropertyChanged(); _ = UpdateView(); }
         }
 
-        private DateTime _endDate = DateTime.Today;
         public DateTime EndDate
         {
             get => _endDate;
-            set { _endDate = value; OnPropertyChanged(); UpdateCalculatedDays(); }
+            set { _endDate = value; OnPropertyChanged(); _ = UpdateView(); }
         }
 
-        private double _calculatedDays;
         public double CalculatedDays
         {
             get => _calculatedDays;
-            set { _calculatedDays = value; OnPropertyChanged(); CheckLimits(); }
+            set { _calculatedDays = value; OnPropertyChanged(); }
         }
 
-        private double _remainingDays;
         public double RemainingDays
         {
             get => _remainingDays;
-            set { _remainingDays = value; OnPropertyChanged(); CheckLimits(); }
+            set { _remainingDays = value; OnPropertyChanged(); }
         }
 
-        private string _validationMessage;
         public string ValidationMessage
         {
             get => _validationMessage;
             set { _validationMessage = value; OnPropertyChanged(); }
         }
 
-        private bool _isSubmitEnabled;
         public bool IsSubmitEnabled
         {
             get => _isSubmitEnabled;
-            set { _isSubmitEnabled = value; OnPropertyChanged(); }
+            set
+            {
+                _isSubmitEnabled = value;
+                OnPropertyChanged();
+                ((Command)SubmitCommand).ChangeCanExecute();
+            }
         }
 
         public ICommand SubmitCommand { get; }
@@ -70,44 +68,39 @@ namespace Projekt.ViewModels
         public AddLeaveViewModel(DatabaseService dbService)
         {
             _dbService = dbService;
-            SubmitCommand = new Command(async () => await Submit(), () => IsSubmitEnabled);
-
-            // Reagowanie na zmianę IsSubmitEnabled
-            PropertyChanged += (s, e) => {
-                if (e.PropertyName == nameof(IsSubmitEnabled))
-                    ((Command)SubmitCommand).ChangeCanExecute();
-            };
+            SubmitCommand = new Command(async () => await OnSubmit(), () => IsSubmitEnabled);
         }
 
-        private async void LoadEmployeeData()
+        private async Task InitializeData()
         {
-            if (CurrentEmployee != null)
-            {
-                RemainingDays = await _dbService.GetRemainingLeaveDays(CurrentEmployee.Id, StartDate.Year);
-            }
+            if (CurrentEmployee == null) return;
+            RemainingDays = await _dbService.GetRemainingLeaveDays(CurrentEmployee.Id, StartDate.Year);
+            await UpdateView();
         }
 
-        private async void UpdateCalculatedDays()
+        private async Task UpdateView()
         {
+            if (CurrentEmployee == null) return;
+
             if (EndDate < StartDate)
             {
                 CalculatedDays = 0;
+                ValidationMessage = "Data końcowa nie może być przed początkową.";
+                IsSubmitEnabled = false;
                 return;
             }
-            CalculatedDays = await _dbService.CalculateWorkingDays(StartDate, EndDate);
-        }
 
-        private void CheckLimits()
-        {
+            CalculatedDays = await _dbService.CalculateWorkingDays(StartDate, EndDate);
+
             if (CalculatedDays <= 0)
             {
-                ValidationMessage = "Wybierz poprawne daty robocze.";
+                ValidationMessage = "Wybierz dni robocze.";
                 IsSubmitEnabled = false;
             }
             else if (CalculatedDays > RemainingDays)
             {
-                ValidationMessage = $"Błąd: Przekroczono limit! (Dostępne: {RemainingDays})";
-                IsSubmitEnabled = true;
+                ValidationMessage = $"Uwaga: Przekroczono limit (Dostępne: {RemainingDays})";
+                IsSubmitEnabled = true; // Pozwalamy zapisać, ale z ostrzeżeniem w Submit
             }
             else
             {
@@ -116,19 +109,12 @@ namespace Projekt.ViewModels
             }
         }
 
-        private async Task Submit()
+        private async Task OnSubmit()
         {
-            if (CalculatedDays <= 0)
-            {
-                await Shell.Current.DisplayAlertAsync("Błąd", "Nie można zatwierdzić wniosku o zerowym wymiarze dni roboczych.", "OK");
-                return;
-            }
-
             if (CalculatedDays > RemainingDays)
             {
                 bool proceed = await Shell.Current.DisplayAlertAsync("Przekroczenie limitu",
-                    $"Pracownikowi brakuje {CalculatedDays - RemainingDays} dni. Czy mimo to zapisać wniosek?", "Tak", "Nie");
-
+                    $"Pracownikowi brakuje {CalculatedDays - RemainingDays} dni. Kontynuować?", "Tak", "Nie");
                 if (!proceed) return;
             }
 
