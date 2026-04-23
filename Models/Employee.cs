@@ -15,7 +15,7 @@ namespace Projekt.Models
         public string LastName { get; set; }
 
         [Unique]
-        public string ReferenceNumber { get; set; } // PESEL / ID
+        public string ReferenceNumber { get; set; }
 
         public DateTime EmploymentDate { get; set; }
 
@@ -24,7 +24,6 @@ namespace Projekt.Models
 
         public int WorkingHoursCount { get; set; } = 40;
 
-        // Właściwość pomocnicza (nie zapisywana w bazie), ułatwia wyświetlanie na listach
         [Ignore]
         public string FullName => $"{FirstName} {LastName}";
     }

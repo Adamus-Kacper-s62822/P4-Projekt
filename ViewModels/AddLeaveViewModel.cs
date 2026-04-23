@@ -100,7 +100,7 @@ namespace Projekt.ViewModels
             else if (CalculatedDays > RemainingDays)
             {
                 ValidationMessage = $"Uwaga: Przekroczono limit (Dostępne: {RemainingDays})";
-                IsSubmitEnabled = true; // Pozwalamy zapisać, ale z ostrzeżeniem w Submit
+                IsSubmitEnabled = true;
             }
             else
             {

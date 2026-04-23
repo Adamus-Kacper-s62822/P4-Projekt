@@ -18,6 +18,6 @@ namespace Projekt.Models
 
         public int DaysLimit { get; set; }
 
-        public int CarryOverDays { get; set; } = 0; // Urlop zaległy z poprzedniego roku
+        public int CarryOverDays { get; set; } = 0;
     }
 }
