@@ -1,37 +1,99 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ViewModels="clr-namespace:Projekt.ViewModels"
              x:Class="Projekt.EmployeeDetailPage"
-             Title="Szczegóły Pracownika">
+             Title="Karta Pracownika"
+             BackgroundColor="{StaticResource Gray950}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
-            <Frame BackgroundColor="{StaticResource Primary}" CornerRadius="10">
-                <VerticalStackLayout HorizontalOptions="Center">
-                    <Label Text="{Binding CurrentEmployee.FullName}" FontSize="24" TextColor="White" HorizontalOptions="Center"/>
-                    <Label Text="Pozostały urlop:" TextColor="White" Opacity="0.8" HorizontalOptions="Center"/>
-                    <Label Text="{Binding RemainingDays, StringFormat='{0} dni'}" FontSize="40" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+        <Grid RowDefinitions="Auto, Auto, *" ColumnDefinitions="*, *" Padding="20" ColumnSpacing="20" RowSpacing="20">
+
+            <VerticalStackLayout Grid.Column="0" Grid.Row="0" Spacing="5" VerticalOptions="Center">
+                <HorizontalStackLayout Spacing="5">
+                    <Label Text="{Binding CurrentEmployee.FirstName}" FontSize="28" FontAttributes="Bold" TextColor="White"/>
+                    <Label Text="{Binding CurrentEmployee.LastName}" FontSize="28" FontAttributes="Bold" TextColor="White"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="10">
+                    <Label Text="Nr ref:" TextColor="{StaticResource Gray400}"/>
+                    <Label Text="{Binding CurrentEmployee.ReferenceNumber}" TextColor="{StaticResource PrimaryDark}"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <Border Grid.Column="1" Grid.Row="0" 
+                    StrokeShape="RoundRectangle 8" 
+                    BackgroundColor="{StaticResource Gray900}" 
+                    Padding="20" HorizontalOptions="End" MinimumWidthRequest="200">
+                <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                    <Label Text="DOSTĘPNY URLOP" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Gray400}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding RemainingDays}" FontSize="36" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" HorizontalOptions="Center"/>
+                    <Label Text="DNI ROBOCZYCH" FontSize="10" TextColor="{StaticResource Gray500}" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
 
-            <Button Text="Złóż wniosek urlopowy" Command="{Binding AddLeaveCommand}" />
+            <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2" Spacing="10">
+                <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2" Spacing="10">
+                    <Button Text="NOWY WNIOSEK" 
+                            Command="{Binding AddLeaveCommand}"
+                            BackgroundColor="{StaticResource PrimaryDark}"
+                            TextColor="Black"
+                            FontAttributes="Bold"
+                            CornerRadius="4"
+                            HeightRequest="40"
+                            Padding="20,0"/>
 
-            <Label Text="Historia urlopów" FontAttributes="Bold" FontSize="18" Margin="0,10,0,0"/>
+                    <Button Text="EKSPORTUJ RAPORT" 
+                            Command="{Binding ExportReportCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource PrimaryDark}"
+                            BorderColor="{StaticResource PrimaryDark}"
+                            BorderWidth="1"
+                            FontAttributes="Bold"
+                            CornerRadius="4"
+                            HeightRequest="40"
+                            Padding="20,0"/>
+                </HorizontalStackLayout>
+            </HorizontalStackLayout>
 
-            <CollectionView ItemsSource="{Binding Leaves}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Frame Margin="0,5" Padding="10">
-                            <HorizontalStackLayout Spacing="10">
-                                <Label Text="{Binding StartDate, StringFormat='{0:dd.MM.yy}'}" />
-                                <Label Text="-" />
-                                <Label Text="{Binding EndDate, StringFormat='{0:dd.MM.yy}'}" />
-                                <Label Text="{Binding Days, StringFormat='({0} dni)'}" FontAttributes="Bold" />
-                            </HorizontalStackLayout>
-                        </Frame>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </VerticalStackLayout>
+            <VerticalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="10">
+                <Label Text="HISTORIA WNIOSKÓW" FontAttributes="Bold" FontSize="14" TextColor="{StaticResource Gray400}"/>
+
+                <CollectionView ItemsSource="{Binding Leaves}" BackgroundColor="Transparent">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="2"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border StrokeShape="Rectangle" StrokeThickness="0" BackgroundColor="{StaticResource Gray900}" Padding="15,10">
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+
+                                    <HorizontalStackLayout Spacing="15" VerticalOptions="Center">
+                                        <Label Text="{Binding StartDate, StringFormat='{0:dd.MM.yyyy}'}" TextColor="White" />
+                                        <Label Text="—" TextColor="{StaticResource Gray600}" />
+                                        <Label Text="{Binding EndDate, StringFormat='{0:dd.MM.yyyy}'}" TextColor="White" />
+                                    </HorizontalStackLayout>
+
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center" Margin="0,0,20,0">
+                                        <Label Text="{Binding Days}" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" />
+                                        <Label Text="dni" TextColor="{StaticResource Gray500}" FontSize="12" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+
+                                    <Button Grid.Column="2" 
+                                            Text="USUŃ" 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ViewModels:EmployeeDetailViewModel}}, Path=DeleteLeaveCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="Transparent"
+                                            TextColor="#FF5555"
+                                            FontSize="10"
+                                            FontAttributes="Bold"
+                                            HeightRequest="30"
+                                            Padding="10,0"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 </ContentPage>

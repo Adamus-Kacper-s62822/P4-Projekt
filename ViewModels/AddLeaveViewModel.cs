@@ -1,8 +1,5 @@
 ﻿using Projekt.Models;
 using Projekt.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Input;
 
 namespace Projekt.ViewModels
@@ -13,16 +10,27 @@ namespace Projekt.ViewModels
         private readonly DatabaseService _dbService;
 
         private Employee _currentEmployee;
-        public Employee CurrentEmployee { get; set; } // Z przekazania parametrów
+        public Employee CurrentEmployee
+        {
+            get => _currentEmployee;
+            set
+            {
+                _currentEmployee = value;
+                OnPropertyChanged();
 
-        private DateTime _startDate = DateTime.Now;
+                LoadEmployeeData();
+                UpdateCalculatedDays();
+            }
+        }
+
+        private DateTime _startDate = DateTime.Today;
         public DateTime StartDate
         {
             get => _startDate;
             set { _startDate = value; OnPropertyChanged(); UpdateCalculatedDays(); }
         }
 
-        private DateTime _endDate = DateTime.Now;
+        private DateTime _endDate = DateTime.Today;
         public DateTime EndDate
         {
             get => _endDate;
@@ -33,7 +41,28 @@ namespace Projekt.ViewModels
         public double CalculatedDays
         {
             get => _calculatedDays;
-            set { _calculatedDays = value; OnPropertyChanged(); }
+            set { _calculatedDays = value; OnPropertyChanged(); CheckLimits(); }
+        }
+
+        private double _remainingDays;
+        public double RemainingDays
+        {
+            get => _remainingDays;
+            set { _remainingDays = value; OnPropertyChanged(); CheckLimits(); }
+        }
+
+        private string _validationMessage;
+        public string ValidationMessage
+        {
+            get => _validationMessage;
+            set { _validationMessage = value; OnPropertyChanged(); }
+        }
+
+        private bool _isSubmitEnabled;
+        public bool IsSubmitEnabled
+        {
+            get => _isSubmitEnabled;
+            set { _isSubmitEnabled = value; OnPropertyChanged(); }
         }
 
         public ICommand SubmitCommand { get; }
@@ -41,28 +70,66 @@ namespace Projekt.ViewModels
         public AddLeaveViewModel(DatabaseService dbService)
         {
             _dbService = dbService;
-            SubmitCommand = new Command(async () => await Submit());
-            UpdateCalculatedDays();
+            SubmitCommand = new Command(async () => await Submit(), () => IsSubmitEnabled);
+
+            // Reagowanie na zmianę IsSubmitEnabled
+            PropertyChanged += (s, e) => {
+                if (e.PropertyName == nameof(IsSubmitEnabled))
+                    ((Command)SubmitCommand).ChangeCanExecute();
+            };
+        }
+
+        private async void LoadEmployeeData()
+        {
+            if (CurrentEmployee != null)
+            {
+                RemainingDays = await _dbService.GetRemainingLeaveDays(CurrentEmployee.Id, StartDate.Year);
+            }
         }
 
         private async void UpdateCalculatedDays()
         {
-            if (EndDate < StartDate) { CalculatedDays = 0; return; }
+            if (EndDate < StartDate)
+            {
+                CalculatedDays = 0;
+                return;
+            }
             CalculatedDays = await _dbService.CalculateWorkingDays(StartDate, EndDate);
+        }
+
+        private void CheckLimits()
+        {
+            if (CalculatedDays <= 0)
+            {
+                ValidationMessage = "Wybierz poprawne daty robocze.";
+                IsSubmitEnabled = false;
+            }
+            else if (CalculatedDays > RemainingDays)
+            {
+                ValidationMessage = $"Błąd: Przekroczono limit! (Dostępne: {RemainingDays})";
+                IsSubmitEnabled = true;
+            }
+            else
+            {
+                ValidationMessage = string.Empty;
+                IsSubmitEnabled = true;
+            }
         }
 
         private async Task Submit()
         {
-            if (CurrentEmployee == null)
+            if (CalculatedDays <= 0)
             {
-                await Shell.Current.DisplayAlertAsync("Błąd", "Nie znaleziono pracownika!", "OK");
+                await Shell.Current.DisplayAlertAsync("Błąd", "Nie można zatwierdzić wniosku o zerowym wymiarze dni roboczych.", "OK");
                 return;
             }
 
-            if (CalculatedDays <= 0)
+            if (CalculatedDays > RemainingDays)
             {
-                await Shell.Current.DisplayAlertAsync("Błąd", "Wybierz poprawne daty (dni robocze > 0)", "OK");
-                return;
+                bool proceed = await Shell.Current.DisplayAlertAsync("Przekroczenie limitu",
+                    $"Pracownikowi brakuje {CalculatedDays - RemainingDays} dni. Czy mimo to zapisać wniosek?", "Tak", "Nie");
+
+                if (!proceed) return;
             }
 
             var leave = new Leave

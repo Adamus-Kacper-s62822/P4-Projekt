@@ -1,33 +1,32 @@
-﻿using Projekt.Models;
-using Projekt.Services;
+﻿using Projekt.Services;
 using Projekt.ViewModels;
 
 namespace Projekt
 {
     public partial class MainPage : ContentPage
     {
+        private readonly DatabaseService _dbService;
+
         public MainPage(DatabaseService dbService)
         {
             InitializeComponent();
+            _dbService = dbService;
+
             BindingContext = new EmployeeViewModel(dbService);
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            if (BindingContext is EmployeeViewModel vm)
+            {
+                vm.LoadData();
+            }
         }
 
         private async void OnAddEmployeeClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AddEmployeePage(
-                App.Current.Handler.MauiContext.Services.GetService<DatabaseService>()));
-        }
-
-        private async void OnEmployeeSelected(object sender, SelectionChangedEventArgs e)
-        {
-            if (e.CurrentSelection.FirstOrDefault() is Employee selectedEmployee)
-            {
-                await Shell.Current.GoToAsync("EmployeeDetailPage", new Dictionary<string, object>
-        {
-            { "Employee", selectedEmployee }
-        });
-            }
-            ((CollectionView)sender).SelectedItem = null;
+            await Navigation.PushAsync(new AddEmployeePage(_dbService));
         }
     }
 }

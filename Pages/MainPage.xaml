@@ -1,23 +1,94 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Projekt.MainPage">
+             xmlns:ViewModels="clr-namespace:Projekt.ViewModels"
+             x:Class="Projekt.MainPage"
+             Title="Lista Pracowników"
+             BackgroundColor="{StaticResource Gray950}">
 
-    <Grid RowDefinitions="Auto, *">
-        <Button Text="Dodaj nowego pracownika" Clicked="OnAddEmployeeClicked" />
+    <Grid RowDefinitions="Auto, Auto, Auto, *" Margin="20" RowSpacing="20">
 
-        <CollectionView 
-                Grid.Row="1" 
-                ItemsSource="{Binding Employees}" 
-                SelectionMode="Single"
-                SelectionChanged="OnEmployeeSelected">
+        <Grid Grid.Row="0" ColumnDefinitions="*, *, *" ColumnSpacing="15">
+            <Border Grid.Column="0" BackgroundColor="{StaticResource Gray900}" StrokeShape="RoundRectangle 8" Padding="20">
+                <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                    <Label Text="ZATRUDNIENI" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Gray400}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding TotalEmployees}" FontSize="32" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Grid.Column="1" BackgroundColor="{StaticResource Gray900}" StrokeShape="RoundRectangle 8" Padding="20">
+                <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                    <Label Text="DZIŚ NA URLOPIE" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Gray400}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding EmployeesOnLeaveToday}" FontSize="32" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Grid.Column="2" BackgroundColor="{StaticResource PrimaryDark}" StrokeShape="RoundRectangle 8" Padding="20">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAddEmployeeClicked" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout Spacing="5" VerticalOptions="Center" HorizontalOptions="Center">
+                    <Label Text="+" FontSize="28" TextColor="Black" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,-10,0,0"/>
+                    <Label Text="NOWY PRACOWNIK" FontSize="10" FontAttributes="Bold" TextColor="Black" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1" BackgroundColor="{StaticResource Gray900}" StrokeShape="RoundRectangle 8" Padding="5">
+            <SearchBar Placeholder="Szukaj po nazwisku, imieniu lub nr ref..."
+                       Text="{Binding SearchText}"
+                       TextColor="White"
+                       PlaceholderColor="{StaticResource Gray500}"
+                       CancelButtonColor="{StaticResource PrimaryDark}"
+                       BackgroundColor="Transparent" />
+        </Border>
+
+        <Border Grid.Row="2" BackgroundColor="{StaticResource Gray900}" StrokeThickness="0" Padding="16, 12">
+            <Grid ColumnDefinitions="2*, 2*, 1*">
+                <Label Text="NAZWISKO I IMIĘ" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" FontSize="12" />
+                <Label Grid.Column="1" Text="NUMER REFERENCYJNY" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" FontSize="12" />
+                <Label Grid.Column="2" Text="AKCJA" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" FontSize="12" HorizontalOptions="End" />
+            </Grid>
+        </Border>
+
+        <CollectionView Grid.Row="3" 
+                    ItemsSource="{Binding Employees}" 
+                    SelectionMode="None"
+                    BackgroundColor="Transparent">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="4" />
+            </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <VerticalStackLayout Padding="10">
-                        <Label Text="{Binding LastName}" FontAttributes="Bold" />
-                        <Label Text="{Binding FirstName}" />
-                        <Label Text="{Binding ReferenceNumber}" FontSize="Caption" />
-                    </VerticalStackLayout>
+                    <Border StrokeShape="RoundRectangle 4" StrokeThickness="0" BackgroundColor="{StaticResource Gray900}">
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Usuń pracownika" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ViewModels:EmployeeViewModel}}, Path=DeleteEmployeeCommand}"
+                                                CommandParameter="{Binding .}" />
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
+
+                        <Grid ColumnDefinitions="2*, 2*, 1*" Padding="16, 12">
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="{Binding LastName}" FontAttributes="Bold" TextColor="White" />
+                                <Label Text="{Binding FirstName}" TextColor="{StaticResource Gray200}" />
+                            </HorizontalStackLayout>
+
+                            <Label Grid.Column="1" Text="{Binding ReferenceNumber}" VerticalOptions="Center" TextColor="{StaticResource Gray400}" />
+
+                            <Button Grid.Column="2" 
+                                    Text="SZCZEGÓŁY" 
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ViewModels:EmployeeViewModel}}, Path=GoToDetailsCommand}"
+                                    CommandParameter="{Binding .}"
+                                    BackgroundColor="{StaticResource PrimaryDark}"
+                                    TextColor="Black"
+                                    FontAttributes="Bold"
+                                    FontSize="10"
+                                    HeightRequest="32"
+                                    Padding="15,0" />
+                        </Grid>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

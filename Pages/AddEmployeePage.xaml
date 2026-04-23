@@ -2,25 +2,106 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Projekt.AddEmployeePage"
-             Title="Dodaj pracownika">
+             Title="Nowy Pracownik"
+             BackgroundColor="{StaticResource Gray950}">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
-        <Entry Placeholder="Imię" Text="{Binding FirstName}" />
-        <Entry Placeholder="Nazwisko" Text="{Binding LastName}" />
-        <Entry Placeholder="PESEL/Nr ewidencyjny" Text="{Binding ReferenceNumber}" />
+    <Grid Padding="20">
+        <Border VerticalOptions="Start" 
+                HorizontalOptions="Center"
+                MaximumWidthRequest="650"
+                Background="{StaticResource Gray900}"
+                Padding="30"
+                StrokeShape="RoundRectangle 12"
+                StrokeThickness="0">
 
-        <Label Text="Data zatrudnienia:" Margin="0,10,0,0" />
-        <DatePicker Date="{Binding EmploymentDate}" />
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,10" Radius="20" Opacity="0.5" />
+            </Border.Shadow>
 
-        <Label Text="Typ zatrudnienia:" Margin="0,10,0,0" />
-        <Picker ItemsSource="{Binding EmploymentTypes}"
-                ItemDisplayBinding="{Binding Name}"
-                SelectedItem="{Binding SelectedType}" />
+            <VerticalStackLayout Spacing="20">
+                <Label Text="DANE PERSONALNE I ZATRUDNIENIE" 
+                       FontSize="14" 
+                       FontAttributes="Bold" 
+                       TextColor="{StaticResource PrimaryDark}" 
+                       HorizontalOptions="Center" />
 
-        <Button Text="Zapisz pracownika" 
-                Command="{Binding SaveCommand}"
-                BackgroundColor="{StaticResource Primary}"
-                TextColor="White"
-                Margin="0,20,0,0" />
-    </VerticalStackLayout>
+                <BoxView HeightRequest="1" Color="{StaticResource Gray600}" Margin="0,-10,0,10"/>
+
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="15">
+                    <VerticalStackLayout Grid.Column="0" Spacing="5">
+                        <Label Text="Imię" FontSize="12" TextColor="{StaticResource Gray400}" Margin="5,0"/>
+                        <Entry Text="{Binding FirstName}" 
+                               Placeholder="Wprowadź imię"
+                               BackgroundColor="{StaticResource Gray950}"
+                               TextColor="White"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="5">
+                        <Label Text="Nazwisko" FontSize="12" TextColor="{StaticResource Gray400}" Margin="5,0"/>
+                        <Entry Text="{Binding LastName}" 
+                               Placeholder="Wprowadź nazwisko"
+                               BackgroundColor="{StaticResource Gray950}"
+                               TextColor="White"/>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="PESEL / Numer ewidencyjny" FontSize="12" TextColor="{StaticResource Gray400}" Margin="5,0"/>
+                    <Entry Text="{Binding ReferenceNumber}" 
+                           Placeholder="np. 800101XXXXX"
+                           BackgroundColor="{StaticResource Gray950}"
+                           TextColor="White"/>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*, 270" 
+                        ColumnSpacing="15" 
+                        HorizontalOptions="Center"
+                        Margin="0,5">
+
+                    <VerticalStackLayout Grid.Column="0" Spacing="8">
+                        <Label Text="Data rozpoczęcia pracy" FontSize="12" TextColor="{StaticResource Gray400}" Margin="5,0"/>
+                        <DatePicker Date="{Binding EmploymentDate}" 
+                                    Format="dd/MM/yyyy"
+                                    TextColor="White"
+                                    HeightRequest="45"
+                                    BackgroundColor="{StaticResource Gray950}" InputTransparent="False" HorizontalOptions="Fill" WidthRequest="150"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="8">
+                        <Label Text="Forma zatrudnienia" FontSize="12" TextColor="{StaticResource Gray400}" Margin="5,0"/>
+
+                        <Border BackgroundColor="{StaticResource Gray950}" 
+                                StrokeThickness="0"
+                                HeightRequest="45"
+                                WidthRequest="270" 
+                                HorizontalOptions="Start">
+                            <Picker ItemsSource="{Binding EmploymentTypes}"
+                                    ItemDisplayBinding="{Binding Name}"
+                                    SelectedItem="{Binding SelectedType}"
+                                    TextColor="White"
+                                    HorizontalOptions="Fill"
+                                    VerticalOptions="Center">
+                            </Picker>
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <BoxView HeightRequest="10" Color="Transparent" />
+
+                <Button Text="ZAPISZ DO BAZY DANYCH" 
+                        Command="{Binding SaveCommand}"
+                        BackgroundColor="{StaticResource PrimaryDark}" 
+                        TextColor="Black"
+                        FontAttributes="Bold"
+                        CornerRadius="4"
+                        HeightRequest="50" />
+
+                <Label Text="Dodanie pracownika automatycznie wygeneruje limity urlopowe."
+                       FontSize="11"
+                       TextColor="{StaticResource Gray600}"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,0,0,10"/>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>

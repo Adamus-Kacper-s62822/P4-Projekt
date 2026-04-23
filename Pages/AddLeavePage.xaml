@@ -2,25 +2,90 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Projekt.AddLeavePage"
-             Title="Nowy Wniosek">
+             Title="Nowy Wniosek"
+             BackgroundColor="{StaticResource Gray950}">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
-        <Label Text="Data rozpoczęcia:" />
-        <DatePicker Date="{Binding StartDate}" MinimumDate="2020-01-01" />
+    <Grid Padding="20">
 
-        <Label Text="Data zakończenia:" />
-        <DatePicker Date="{Binding EndDate}" MinimumDate="{Binding StartDate}" />
+        <Border VerticalOptions="Start" 
+                HorizontalOptions="Center"
+                MaximumWidthRequest="600"
+                Background="{StaticResource Gray900}"
+                Padding="30"
+                StrokeShape="RoundRectangle 12"
+                StrokeThickness="0">
 
-        <Frame BackgroundColor="#F0F0F0" Margin="0,10">
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
-                <Label Text="Dni robocze:" VerticalOptions="Center" />
-                <Label Text="{Binding CalculatedDays}" FontSize="24" FontAttributes="Bold" />
-            </HorizontalStackLayout>
-        </Frame>
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,10" Radius="20" Opacity="0.5" />
+            </Border.Shadow>
 
-        <Button Text="Zatwierdź urlop" 
-                Command="{Binding SubmitCommand}"
-                BackgroundColor="Green" 
-                TextColor="White" />
-    </VerticalStackLayout>
+            <VerticalStackLayout Spacing="25">
+                <Label Text="PARAMETRY WNIOSKU" 
+                       FontSize="14" 
+                       FontAttributes="Bold" 
+                       TextColor="{StaticResource PrimaryDark}" 
+                       HorizontalOptions="Center" />
+
+                <BoxView HeightRequest="1" Color="{StaticResource Gray600}" Margin="0,-10,0,0"/>
+
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
+                    <VerticalStackLayout Grid.Column="0" Spacing="8">
+                        <Label Text="Początek urlopu" FontSize="12" TextColor="{StaticResource Gray400}"/>
+                        <DatePicker Date="{Binding StartDate}" 
+                                    Format="dd/MM/yyyy"
+                                    MinimumDate="2020-01-01"
+                                    TextColor="White" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="8">
+                        <Label Text="Koniec urlopu" FontSize="12" TextColor="{StaticResource Gray400}"/>
+                        <DatePicker Date="{Binding EndDate}" 
+                                    Format="dd/MM/yyyy"
+                                    MinimumDate="{Binding StartDate}"
+                                    TextColor="White" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Border BackgroundColor="{StaticResource Gray950}" 
+                        Padding="15" 
+                        StrokeShape="RoundRectangle 8">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="15">
+                        <Label Text="WYMIAR URLOPU:" 
+                               VerticalOptions="Center" 
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gray500}" />
+                        <Label Text="{Binding CalculatedDays}" 
+                               FontSize="32" 
+                               FontAttributes="Bold" 
+                               TextColor="{StaticResource PrimaryDark}" />
+                        <Label Text="DNI" 
+                               VerticalOptions="Center" 
+                               FontSize="12"
+                               TextColor="{StaticResource Gray500}" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <Label Text="{Binding ValidationMessage}" 
+                       TextColor="Red" 
+                       FontSize="12" 
+                       HorizontalOptions="Center" 
+                       IsVisible="{Binding ValidationMessage.Length, Converter={StaticResource StringToBoolConverter}}" />
+
+                <Button Text="ZATWIERDŹ WNIOSEK" 
+                        Command="{Binding SubmitCommand}"
+                        BackgroundColor="{StaticResource PrimaryDark}" 
+                        TextColor="Black"
+                        FontAttributes="Bold"
+                        CornerRadius="4"
+                        HeightRequest="45"
+                        HorizontalOptions="Fill" />
+
+                <Label Text="System automatycznie odejmie dni od dostępnego limitu rocznego."
+                       FontSize="11"
+                       TextColor="{StaticResource Gray600}"
+                       HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>

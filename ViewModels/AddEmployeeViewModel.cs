@@ -1,9 +1,6 @@
 ﻿using Projekt.Models;
 using Projekt.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using System.Windows.Input;
 
 namespace Projekt.ViewModels
