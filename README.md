@@ -1,6 +1,8 @@
 # System Zarządzania Urlopami (HR Management System)
 Aplikacja mobilna/desktopowa zbudowana w technologii **.NET MAUI** z wykorzystaniem lokalnej bazy danych **SQLite**.
 
+![](./readme-image.png)
+
 ## 🚀 Funkcjonalności
 - **Zarządzanie Pracownikami**: Dodawanie, edycja i przeglądanie listy pracowników.
 - **Automatyczne Limity**: System automatycznie przypisuje limity urlopowe na podstawie wybranego typu zatrudnienia.
